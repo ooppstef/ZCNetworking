@@ -223,6 +223,8 @@
             failure(error);
         }
     }];
+    
+    [uploadTask resume];
     return uploadTask;
 }
 
