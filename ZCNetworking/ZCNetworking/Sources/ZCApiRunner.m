@@ -251,20 +251,18 @@
     __block NSError *err = nil;
     for (ZCApiAction *action in actions) {
         dispatch_group_enter(group);
-        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-           __block NSURLSessionTask *task = [self runAction:action success:^(id object) {
-               dispatch_group_leave(group);
-               resultDict[action.url] = object;
-           } failure:^(NSError *error) {
-               err = error;
-               dispatch_group_leave(group);
-               flag = NO;
-               for (NSURLSessionTask *t in tasks) {
-                   [t cancel];
-               }
-           }];
-           [tasks addObject:task];
-        });
+        __block NSURLSessionTask *task = [self runAction:action success:^(id object) {
+            dispatch_group_leave(group);
+            resultDict[action.url] = object;
+        } failure:^(NSError *error) {
+            err = error;
+            dispatch_group_leave(group);
+            flag = NO;
+            for (NSURLSessionTask *t in tasks) {
+                [t cancel];
+            }
+        }];
+        [tasks addObject:task];
     }
     
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
