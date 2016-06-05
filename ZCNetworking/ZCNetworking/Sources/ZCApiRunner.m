@@ -12,6 +12,7 @@
 #import "ZCApiUploadAction.h"
 #import "ZCApiDownloadAction.h"
 #import "AFNetworking.h"
+#import "ZCChainProcessor.h"
 
 @interface ZCApiRunner ()
 
@@ -21,8 +22,9 @@
 @property (nonatomic, strong) NSMutableDictionary   *addtionalHeaders;
 @property (nonatomic, copy)   NSString              *codeKey;
 @property (nonatomic, strong) NSArray<NSString *>   *successCodes;
-@property (nonatomic, strong) NSArray<NSString *>    *warningCodes;
+@property (nonatomic, strong) NSArray<NSString *>   *warningCodes;
 @property (nonatomic, copy)   ZCWarningCodesHandler warningCodesHandler;
+@property (nonatomic, strong) NSMutableArray        *chainProcessorArray;
 
 @end
 
@@ -130,28 +132,28 @@
         task = [[ZCNetworking sharedInstance] sendRequestWithConfiguration:configuration url:fullURL method:action.method params:action.params success:^(id object) {
             [weakSelf handleAction:action withResponse:object success:^(id object) {
                 !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(YES);
-                success(object);
+                !success? : success(object);
             } failure:^(NSError *error) {
                 !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(NO);
-                failure(error);
+                !failure ? : failure(error);
             }];
         } failure:^(NSError *error) {
             !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(NO);
-            failure(error);
+            !failure? : failure(error);
         }];
     }
     else {
         task = [[ZCNetworking sharedInstance] sendRequestWithURL:fullURL method:action.method params:action.params success:^(id object) {
             [weakSelf handleAction:action withResponse:object success:^(id object) {
                 !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(YES);
-                success(object);
+                !success? : success(object);
             } failure:^(NSError *error) {
                 !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(NO);
-                failure(error);
+                !failure? : failure(error);
             }];
         } failure:^(NSError *error) {
             !action.actionDidInvokeBlock ? : action.actionDidInvokeBlock(NO);
-            failure(error);
+            !failure? : failure(error);
         }];
     }
     return task;
@@ -160,7 +162,7 @@
 - (NSURLSessionUploadTask *)uploadAction:(ZCApiUploadAction *)action progress:(void (^) (NSProgress *uploadProgress))progress success:(ZCTypeBlock)success failure:(ZCErrorBlock)failure {
     NSError *error = [self validateAction:action];
     if (error) {
-        failure(error);
+        !failure? : failure(error);
         return nil;
     }
     [action.params addEntriesFromDictionary:self.globleParams];
@@ -198,12 +200,12 @@
     
     NSURLSessionUploadTask *uploadTask = [[ZCNetworking sharedInstance] uploadTaskByRequest:request process:progress success:^(id object) {
         [weakSelf handleAction:action withResponse:object success:^(id object) {
-            success(object);
+            !success ? : success(object);
         } failure:^(NSError *error) {
-            failure(error);
+            !failure? : failure(error);
         }];
     } failure:^(NSError *error) {
-        failure(error);
+        !failure? : failure(error);
     }];
     return uploadTask;
 }
@@ -211,7 +213,7 @@
 - (NSURLSessionDownloadTask *)downloadAction:(ZCApiDownloadAction *)action progress:(void (^) (NSProgress *downloadProgress))progress success:(ZCVoidBlock)success failure:(ZCErrorBlock)failure {
     NSError *error = [self validateAction:action];
     if (error) {
-        failure(error);
+        !failure? : failure(error);
         return nil;
     }
     [action.params addEntriesFromDictionary:self.globleParams];
@@ -228,16 +230,16 @@
         configuration.HTTPAdditionalHeaders = headers;
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:fullURL]];
         task = [[ZCNetworking sharedInstance] downloadFileWithConfiguration:configuration request:request savePath:action.path process:progress success:^{
-            success();
+            !success? : success();
         } failure:^(NSError *error) {
-            failure(error);
+            !failure? : failure(error);
         }];
     }
     else {
         task = [[ZCNetworking sharedInstance] downloadFileByURL:fullURL savePath:action.path process:progress success:^{
-            success();
+            !success? : success();
         } failure:^(NSError *error) {
-            failure(error);
+            !failure? : failure(error);
         }];
     }
     return task;
@@ -253,7 +255,12 @@
         dispatch_group_enter(group);
         __block NSURLSessionTask *task = [self runAction:action success:^(id object) {
             dispatch_group_leave(group);
-            resultDict[action.url] = object;
+            if (action.identifier) {
+                resultDict[action.identifier] = object;
+            }
+            else {
+                resultDict[action.url] = object;
+            }
         } failure:^(NSError *error) {
             err = error;
             dispatch_group_leave(group);
@@ -267,38 +274,59 @@
     
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
         if (flag) {
-            success(resultDict);
+            !success? : success(resultDict);
         }
         else {
-            failure(err);
+            !failure? : failure(err);
         }
     });
 }
 
 - (void)chainTasksWithActions:(NSArray<ZCApiAction *> *)actions success:(ZCDictBlock)success failure:(ZCErrorBlock)failure {
-    NSMutableDictionary *resultDict = [@{} mutableCopy];
-    __block NSError *err = nil;
-    
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 
-    [actions enumerateObjectsUsingBlock:^(ZCApiAction * _Nonnull action, NSUInteger idx, BOOL * _Nonnull stop) {
-        [self runAction:action success:^(id object) {
-            resultDict[action.url] = object;
-            dispatch_semaphore_signal(semaphore);
-        } failure:^(NSError *error) {
-            err = err;
-            dispatch_semaphore_signal(semaphore);
-            *stop = YES;
-        }];
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    }];
+    /**
+     *  该实现会导致死锁(AFHTTPSessionManager的complationQueue为main queue)
+        可以将complationQueue替换成globle queue以解决此问题,不过得不偿失.
+     */
     
-    if (err) {
-        failure(err);
-    }
-    else {
-        success(resultDict);
-    }
+//    NSMutableDictionary *resultDict = [@{} mutableCopy];
+//    __block NSError *err = nil;
+//    
+//    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+//
+//    [actions enumerateObjectsUsingBlock:^(ZCApiAction * _Nonnull action, NSUInteger idx, BOOL * _Nonnull stop) {
+//        [self runAction:action success:^(id object) {
+//            resultDict[action.url] = object;
+//            dispatch_semaphore_signal(semaphore);
+//        } failure:^(NSError *error) {
+//            err = err;
+//            dispatch_semaphore_signal(semaphore);
+//            *stop = YES;
+//        }];
+//        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//    }];
+//    
+//    if (err) {
+//        !failure? : failure(err);
+//    }
+//    else {
+//        !success? : success(resultDict);
+//    }
+    
+    ZCChainProcessor *processor = [[ZCChainProcessor alloc] initWithActions:actions];
+    
+    __weak typeof(self) weakSelf = self;
+    void (^complationSuccess) (NSDictionary *dict) = ^ (NSDictionary *dict) {
+        [weakSelf.chainProcessorArray removeObject:processor];
+        !success? : success(dict);
+    };
+    void (^complationFailure) (NSError *error) = ^ (NSError *error) {
+        [weakSelf.chainProcessorArray removeObject:processor];
+        !failure? : failure(error);
+    };
+    
+    [processor startWithSuccess:complationSuccess failure:complationFailure];
+    [self.chainProcessorArray addObject:processor];
 }
 
 #pragma mark - private methods
@@ -461,6 +489,16 @@
             failure([NSError errorWithDomain:@"Not satisfy success condition" code:[returnCode integerValue] userInfo:@{@"object":returnObject}]);
         }
     }
+}
+
+#pragma mark - getters
+
+- (NSMutableArray *)chainProcessorArray {
+    if (_chainProcessorArray) {
+        _chainProcessorArray = @[].mutableCopy;
+    }
+    
+    return _chainProcessorArray;
 }
 
 @end

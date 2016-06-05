@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		56024ABC1CC77DD4002F07B4 /* ZCApiUploadAction.m in Sources */ = {isa = PBXBuildFile; fileRef = 56024ABB1CC77DD4002F07B4 /* ZCApiUploadAction.m */; };
+		56A598421D0422120028A6A1 /* ZCChainProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 56A598411D0422120028A6A1 /* ZCChainProcessor.m */; };
 		56C710611CC87B2E0040E3E9 /* ZCApiDownloadAction.m in Sources */ = {isa = PBXBuildFile; fileRef = 56C710601CC87B2E0040E3E9 /* ZCApiDownloadAction.m */; };
 		56CCAED41CC0CDB1006227A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 56CCAED31CC0CDB1006227A9 /* main.m */; };
 		56CCAED71CC0CDB1006227A9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 56CCAED61CC0CDB1006227A9 /* AppDelegate.m */; };
@@ -44,6 +45,8 @@
 		53D49A2965CE747E024945C4 /* Pods-ZCNetworking.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZCNetworking.release.xcconfig"; path = "Pods/Target Support Files/Pods-ZCNetworking/Pods-ZCNetworking.release.xcconfig"; sourceTree = "<group>"; };
 		56024ABA1CC77DD4002F07B4 /* ZCApiUploadAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCApiUploadAction.h; sourceTree = "<group>"; };
 		56024ABB1CC77DD4002F07B4 /* ZCApiUploadAction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCApiUploadAction.m; sourceTree = "<group>"; };
+		56A598401D0422120028A6A1 /* ZCChainProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCChainProcessor.h; sourceTree = "<group>"; };
+		56A598411D0422120028A6A1 /* ZCChainProcessor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCChainProcessor.m; sourceTree = "<group>"; };
 		56C7105F1CC87B2E0040E3E9 /* ZCApiDownloadAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCApiDownloadAction.h; sourceTree = "<group>"; };
 		56C710601CC87B2E0040E3E9 /* ZCApiDownloadAction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCApiDownloadAction.m; sourceTree = "<group>"; };
 		56C710621CC88C110040E3E9 /* ZCApiLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCApiLauncher.h; sourceTree = "<group>"; };
@@ -188,6 +191,8 @@
 				56024ABB1CC77DD4002F07B4 /* ZCApiUploadAction.m */,
 				56C7105F1CC87B2E0040E3E9 /* ZCApiDownloadAction.h */,
 				56C710601CC87B2E0040E3E9 /* ZCApiDownloadAction.m */,
+				56A598401D0422120028A6A1 /* ZCChainProcessor.h */,
+				56A598411D0422120028A6A1 /* ZCChainProcessor.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -390,6 +395,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56A598421D0422120028A6A1 /* ZCChainProcessor.m in Sources */,
 				56CCAEDA1CC0CDB1006227A9 /* ViewController.m in Sources */,
 				56CCAF221CC0EF1A006227A9 /* ZCApiAction.m in Sources */,
 				56CCAED71CC0CDB1006227A9 /* AppDelegate.m in Sources */,

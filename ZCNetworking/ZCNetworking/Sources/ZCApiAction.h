@@ -61,6 +61,10 @@ typedef NS_ENUM(NSInteger, HttpMethod) {
  */
 @property (nonatomic, copy)   ZCActionComplation actionDidInvokeBlock;
 
+/**
+ *  标志.执行batch操作的时候,优先通过identifier来汇总结果.如果没有,则通过url来汇总.
+ */
+@property (nonatomic, copy)   NSString           *identifier;
 
 - (instancetype)initWithURL:(NSString *)url;
 - (void)setHttpMethod:(enum HttpMethod)method;
