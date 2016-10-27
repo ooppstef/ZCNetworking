@@ -71,6 +71,9 @@
     _addtionalHeaders = [dict mutableCopy];
     NSURLSessionConfiguration *configuration = [ZCNetworking sharedInstance].defaultConfigration;
     NSMutableDictionary *headers = configuration.HTTPAdditionalHeaders.mutableCopy;
+    if (!headers) {
+        headers = @{}.mutableCopy;
+    }
     [headers addEntriesFromDictionary:dict];
     configuration.HTTPAdditionalHeaders = headers;
     [[ZCNetworking sharedInstance] setDefaultSessionConfiguration:configuration];
